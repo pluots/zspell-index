@@ -12,6 +12,7 @@ const WOOORM_TAG: &str = "source-wooorm";
 const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 const OUTPUT_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const FILE_NAME: &str = "zspell-index.json";
+const FILE_NAME_PRETTY: &str = "zspell-index-pretty.json";
 
 /// Contents of a directory
 #[derive(Debug, Deserialize)]
@@ -20,13 +21,13 @@ struct Tree(Vec<Listing>);
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 struct Listing {
-    name: String,
-    path: String,
+    name: Box<str>,
+    path: Box<str>,
     size: usize,
-    sha: String,
-    url: String,
-    html_url: String,
-    git_url: String,
+    sha: Box<str>,
+    url: Box<str>,
+    html_url: Box<str>,
+    git_url: Box<str>,
     #[serde(flatten)]
     contents: ListingContents,
 }
@@ -36,7 +37,7 @@ struct Listing {
 #[serde(rename_all = "lowercase")]
 enum ListingContents {
     Dir,
-    File { download_url: String },
+    File { download_url: Box<str> },
 }
 
 fn make_client() -> ureq::Agent {
@@ -69,7 +70,8 @@ fn make_downloadable(listing: &Listing) -> anyhow::Result<Downloadable> {
 
     let ret = Downloadable {
         urls: vec![download_url.clone()],
-        hash: format!("sha256:{}", listing.sha),
+        // Github uses sha1 for the hash
+        hash: format!("sha1:{}", listing.sha).into(),
         size: listing.size.try_into().unwrap(),
     };
 
@@ -101,7 +103,7 @@ fn update_inner(
     };
 
     let ret = DictItem {
-        lang: lang.to_owned(),
+        lang: lang.into(),
         tags: vec![WOOORM_TAG.into()],
         is_ext: false,
         id: uuid::Uuid::now_v7(),
@@ -140,10 +142,14 @@ fn update_from_wooorm() -> anyhow::Result<()> {
     }
 
     let output_path = Path::new(OUTPUT_DIR).join(FILE_NAME);
+    let output_path_pretty = Path::new(OUTPUT_DIR).join(FILE_NAME_PRETTY);
     let ser = serde_json::to_string(&index)?;
+    let ser_pretty = serde_json::to_string_pretty(&index)?;
 
     eprintln!("writing output to {}", output_path.display());
     fs::write(output_path, ser)?;
+    eprintln!("writing pretty output to {}", output_path_pretty.display());
+    fs::write(output_path_pretty, ser_pretty)?;
 
     Ok(())
 }
