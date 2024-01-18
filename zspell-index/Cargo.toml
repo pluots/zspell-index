@@ -1,0 +1,12 @@
+[package]
+name = "zspell-index"
+version = "0.2.1"
+edition = "2021"
+license = "Apache-2.0"
+description = "Index format for the ZSpell spellchecker"
+repository = "https://github.com/pluots/zspell-index"
+
+[dependencies]
+chrono = { version = "0.4.31", features = ["serde"] }
+serde = { version = "1.0.195", features = ["derive"] }
+uuid = { version = "1.6.1", features = ["serde", "v7"] }

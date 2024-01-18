@@ -1,23 +1,6 @@
-[package]
-name = "zspell-index"
-version = "0.2.0"
-edition = "2021"
-license = "Apache-2.0"
-description = "Index format for the Zspell spellchecker"
-repository = "https://github.com/pluots/zspell-index"
-
-[dependencies]
-anyhow = "1.0.79"
-chrono = { version = "0.4.31", features = ["serde"] }
-serde = { version = "1.0.195", features = ["derive"] }
-serde_json = "1.0.111"
-ureq = { version = "2.9.1", features = ["json"] }
-uuid = { version = "1.6.1", features = ["serde", "v7"] }
-
-[lib]
-name = "zspell_index"
-path = "src/lib.rs"
-
-[[bin]]
-name = "zspell-index-cli"
-path = "src/main.rs"
+[workspace]
+resolver = "2"
+members = [
+    "zspell-index",
+    "zspell-index-cli",
+]
