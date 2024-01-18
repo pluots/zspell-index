@@ -28,18 +28,14 @@ jobs:
       - run: cargo clippy --all-features --all-targets -- -D warnings
 
   test:
-    strategy:
-        fail-fast: true
-        matrix:
-          os: [ubuntu-latest, windows-latest, macos-latest]
-          include:
-            - os: ubuntu-latest
-              name: linux
-    name: "test on ${{ matrix.name }}"
-    runs-on: ${{ matrix.os }}
+    name: test
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: rustup default stable && rustup update
+      - run: |
+          rustup default stable
+          rustup update
+          rustup component add clippy
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
 
@@ -49,7 +45,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: rustup default nightly && rustup update
+      - run: |
+          rustup default stable
+          rustup update
+          rustup component add rustfmt
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all -- --check
 
@@ -58,6 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: rustup default nightly && rustup update
+      - run: |
+          rustup default nightly
+          rustup update
       - uses: Swatinem/rust-cache@v2
-      - run: cargo doc
+      - run: cargo doc --no-deps

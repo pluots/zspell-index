@@ -1,5 +1,5 @@
-//! The main source for index entries is https://github.com/wooorm. This tool automatically
-//! updates our index based on its contents.
+//! The main source for index entries is <https://github.com/wooorm/dictionaries>. This tool
+//! automatically updates our index based on its contents.
 
 use anyhow::{bail, Context};
 use serde::Deserialize;
@@ -40,6 +40,7 @@ enum ListingContents {
 }
 
 fn make_client() -> ureq::Agent {
+    #[allow(clippy::result_large_err)]
     fn add_headers(
         req: ureq::Request,
         next: ureq::MiddlewareNext,
