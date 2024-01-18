@@ -4,7 +4,7 @@
 use anyhow::{bail, Context};
 use serde::Deserialize;
 use std::{env, fs, path::Path, time::Duration};
-use zspell_index::{DictionaryFormat, Downloadable, Index, IndexEntry, INDEX_VERSION};
+use zspell_index::{DictionaryFormat, Downloadable, Index, IndexEntry};
 
 const WOOORM_ROOT_URL: &str =
     "https://api.github.com/repos/wooorm/dictionaries/contents/dictionaries";
@@ -69,7 +69,7 @@ fn make_downloadable(listing: &Listing) -> anyhow::Result<Downloadable> {
     };
 
     let ret = Downloadable {
-        urls: vec![download_url.clone()],
+        urls: Box::new([download_url.clone()]),
         // Github uses sha1 for the hash
         hash: format!("sha1:{}", listing.sha).into(),
         size: listing.size.try_into().unwrap(),
@@ -104,7 +104,7 @@ fn update_inner(
 
     let ret = IndexEntry {
         lang: lang.into(),
-        tags: vec![WOOORM_TAG.into()],
+        tags: Box::new([WOOORM_TAG.into()]),
         is_ext: false,
         id: uuid::Uuid::now_v7(),
         format: DictionaryFormat::Hunspell {
@@ -124,9 +124,7 @@ fn update_from_wooorm() -> anyhow::Result<()> {
         .context("requesting root listing")?
         .into_json()?;
 
-    let mut index = Index::new();
-    index.schema_version = INDEX_VERSION;
-
+    let mut items = Vec::new();
     for dir in all_langs.0.iter() {
         let lang = &dir.name;
         let ListingContents::Dir = dir.contents else {
@@ -138,8 +136,11 @@ fn update_from_wooorm() -> anyhow::Result<()> {
         let item = update_inner(lang, &dir.url, &agent)?;
         let Some(item) = item else { continue };
 
-        index.items.push(item);
+        items.push(item);
     }
+
+    let mut index = Index::new();
+    index.items = items.into_boxed_slice();
 
     let output_path = Path::new(OUTPUT_DIR).join(FILE_NAME);
     let output_path_pretty = Path::new(OUTPUT_DIR).join(FILE_NAME_PRETTY);

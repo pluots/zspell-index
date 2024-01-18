@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// The version of the index serialization format
 pub const INDEX_VERSION: u8 = 1;
 
 /// The main index entrypoint
@@ -15,7 +16,7 @@ pub struct Index {
     pub updated: String,
     /// Used only for cached versions to check whether the index should be updated
     pub retrieved: Option<Box<str>>,
-    pub items: Vec<IndexEntry>,
+    pub items: Box<[IndexEntry]>,
 }
 
 impl Index {
@@ -24,7 +25,7 @@ impl Index {
             schema_version: INDEX_VERSION,
             updated: "abc".into(),
             retrieved: None,
-            items: Vec::new(),
+            items: Box::new([]),
         }
     }
 }
@@ -40,7 +41,7 @@ pub struct IndexEntry {
     /// - A `size-{compact,medium,large}` reference
     ///
     /// These tags are used to determine when a dictionary is overwritten
-    pub tags: Vec<Box<str>>,
+    pub tags: Box<[Box<str>]>,
     /// True if this dictionary meant to extend a base dictionary. E.g. jargon dictionaries.
     pub is_ext: bool,
     /// UUID for this entry
@@ -70,7 +71,7 @@ pub enum DictionaryFormat {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Downloadable {
     /// A list of URLs that can be used, in order of precedence
-    pub urls: Vec<Box<str>>,
+    pub urls: Box<[Box<str>]>,
     /// A hash of the file. This should be in the form `sha256:1234abcd...`
     pub hash: Box<str>,
     /// The size of the file, in bytes
