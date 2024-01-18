@@ -4,7 +4,7 @@
 use anyhow::{bail, Context};
 use serde::Deserialize;
 use std::{env, fs, path::Path, time::Duration};
-use zspell_index::{DictItem, DictionaryFormat, Downloadable, Index, INDEX_VERSION};
+use zspell_index::{DictionaryFormat, Downloadable, Index, IndexEntry, INDEX_VERSION};
 
 const WOOORM_ROOT_URL: &str =
     "https://api.github.com/repos/wooorm/dictionaries/contents/dictionaries";
@@ -82,7 +82,7 @@ fn update_inner(
     lang: &str,
     dir_url: &str,
     agent: &ureq::Agent,
-) -> anyhow::Result<Option<DictItem>> {
+) -> anyhow::Result<Option<IndexEntry>> {
     let dir_tree: Tree = agent
         .get(dir_url)
         .call()
@@ -102,7 +102,7 @@ fn update_inner(
         return Ok(None);
     };
 
-    let ret = DictItem {
+    let ret = IndexEntry {
         lang: lang.into(),
         tags: vec![WOOORM_TAG.into()],
         is_ext: false,

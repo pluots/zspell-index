@@ -1,3 +1,5 @@
+//! Data structures that represent a ZSpell index.
+
 #![allow(clippy::new_without_default)]
 
 use serde::{Deserialize, Serialize};
@@ -5,6 +7,7 @@ use uuid::Uuid;
 
 pub const INDEX_VERSION: u8 = 1;
 
+/// The main index entrypoint
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Index {
     pub schema_version: u8,
@@ -12,7 +15,7 @@ pub struct Index {
     pub updated: String,
     /// Used only for cached versions to check whether the index should be updated
     pub retrieved: Option<Box<str>>,
-    pub items: Vec<DictItem>,
+    pub items: Vec<IndexEntry>,
 }
 
 impl Index {
@@ -26,8 +29,9 @@ impl Index {
     }
 }
 
+/// A single item within an index
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DictItem {
+pub struct IndexEntry {
     /// Language code of the dictionary
     pub lang: Box<str>,
     /// These may include the following
@@ -41,11 +45,14 @@ pub struct DictItem {
     pub is_ext: bool,
     /// UUID for this entry
     pub id: Uuid,
+    /// The dictionary source files, which differ based on format
     #[serde(flatten)]
     pub format: DictionaryFormat,
+    /// The license
     pub lic: Downloadable,
 }
 
+/// Dictionary source files
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "fmt")]
 #[serde(rename_all = "lowercase")]
@@ -62,7 +69,10 @@ pub enum DictionaryFormat {
 /// A file that can be downloaded
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Downloadable {
+    /// A list of URLs that can be used, in order of precedence
     pub urls: Vec<Box<str>>,
+    /// A hash of the file. This should be in the form `sha256:1234abcd...`
     pub hash: Box<str>,
+    /// The size of the file, in bytes
     pub size: u64,
 }
