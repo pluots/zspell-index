@@ -1,0 +1,63 @@
+---
+name: Rust Validation
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_call: # allow this to be run from other workflows
+
+env:
+  RUSTDOCFLAGS: -D warnings
+  RUSTFLAGS: -D warnings
+  RUST_BACKTRACE: 1
+  CARGO_UNSTABLE_SPARSE_REGISTRY: true
+
+jobs:
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup default stable
+          rustup update
+          rustup component add clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --all-features --all-targets -- -D warnings
+
+  test:
+    strategy:
+        fail-fast: true
+        matrix:
+          os: [ubuntu-latest, windows-latest, macos-latest]
+          include:
+            - os: ubuntu-latest
+              name: linux
+    name: "test on ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup default stable && rustup update
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test
+
+
+  fmt:
+    name: formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup default nightly && rustup update
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+
+  doc:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup default nightly && rustup update
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo doc
