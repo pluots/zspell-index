@@ -2,6 +2,7 @@
 
 #![allow(clippy::new_without_default)]
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -13,7 +14,7 @@ pub const INDEX_VERSION: u8 = 1;
 pub struct Index {
     pub schema_version: u8,
     // TODO: chrono datetime
-    pub updated: String,
+    pub updated: DateTime<Utc>,
     /// Used only for cached versions to check whether the index should be updated
     pub retrieved: Option<Box<str>>,
     pub items: Box<[IndexEntry]>,
@@ -23,7 +24,7 @@ impl Index {
     pub fn new() -> Self {
         Self {
             schema_version: INDEX_VERSION,
-            updated: "abc".into(),
+            updated: Utc::now(),
             retrieved: None,
             items: Box::new([]),
         }
@@ -60,7 +61,7 @@ pub struct IndexEntry {
 pub enum DictionaryFormat {
     /// The Hunspell dictionary format
     Hunspell {
-        afx: Downloadable,
+        aff: Downloadable,
         dic: Downloadable,
     },
     /// A list of words with no special meanings. One word per line.
